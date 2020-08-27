@@ -168,8 +168,8 @@ def full_view():
                 Current Inventory
     {stars1}
     """)
-    for item in inv_list:
-        print(f"- {item[0]}, {item[1]}, {item[2]}, {item[3]}")
+    for item in Product.select():
+        print(f"- {item.product_name}, {item.product_quantity}, {item.product_price}, {item.date_updated}")
     back = input("\nWould you like to return to the main menu? (y/n)  ")
     if back != "n":
         main_menu()
