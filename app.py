@@ -70,32 +70,29 @@ def main_menu():
     choice = None
     # clear()
 
-    while choice != 'q':
-        clear()
-        print(f"""
+    clear()
+    print(f"""
     {stars1}
-    Inventory for The Storensons' Store!
+      Inventory for The Storensons' Store!
     {stars1}
-        """)        
-        print("""
+    """)        
+    print("""
 Please make a selection from the menu below:""")
-        
-        for key, value in menu.items():
-            print("""
-    {}) {}""".format(key, value.__doc__))
-        print()
-        choice = input("Your Selection:  ").lower().strip()
-        try:
-            if choice not in menu:
-                raise ValueError
-        except ValueError:
-            print("\nThe only options available are v/b/a/q, please enter one of these.")
-        else:
-            if choice in menu:
-                # clear()
-                menu[choice]()
-                break
-
+    
+    for key, value in menu.items():
+        print("""
+{}) {}""".format(key, value.__doc__))
+    print()
+    choice = input("Your Selection:  ").lower().strip()
+    try:
+        if choice not in menu:
+            raise ValueError
+    except ValueError:
+        print("\nThe only options available are v/b/a/q, please enter one of these.")
+    else:
+        if choice in menu:
+            # clear()
+            menu[choice]()
 
 
 def view_product():
@@ -152,6 +149,7 @@ def add_product():
             print("\nPlease enter only numeral values for price.\n")
             continue
         date = datetime.datetime.now().date().strftime('%m/%d/%Y')
+        print("...")
         inv_list.append([name, price, quantity, date])
         populate(inv_list)
         again = input("\n--- Inventory Updated ---\n\nAdd another item? (y/n)  ")
@@ -168,6 +166,7 @@ def full_view():
                 Current Inventory
     {stars1}
     """)
+    print("Name,  Quantity in Stock,  Price (in cents),  Date Updated\n",("-" * 56))
     for item in Product.select():
         print(f"- {item.product_name}, {item.product_quantity}, {item.product_price}, {item.date_updated}")
     back = input("\nWould you like to return to the main menu? (y/n)  ")
@@ -175,6 +174,7 @@ def full_view():
         main_menu()
     else:
         quit()
+
 
 def make_backup():
     """Make a backup of the inventory database"""
@@ -206,6 +206,7 @@ def quit():
     {stars1}
     """)
     exit()
+
 
 menu = OrderedDict([
         ('v', view_product),
