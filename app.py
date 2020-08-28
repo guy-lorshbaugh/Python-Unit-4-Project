@@ -2,6 +2,7 @@ from collections import OrderedDict
 import csv
 import re
 import os
+from os import path
 import datetime
 
 from peewee import *
@@ -136,11 +137,8 @@ def full_view():
     print("Product ID:  Name,  Quantity in Stock,  Price (in cents),  Date Updated\n",("-" * 56))
     for item in Product.select():
         print(f"- {item.product_id}: {item.product_name}, {item.product_quantity}, {item.product_price}, {item.date_updated}")
-    back = input("\nWould you like to return to the main menu? (y/n)  ")
-    if back != "n":
-        main_menu()
-    else:
-        quit()
+    print()
+    go_back()
 
 
 def add_product():
@@ -169,7 +167,7 @@ def add_product():
         date = datetime.datetime.now().date().strftime('%m/%d/%Y')
         inv_list.append([name, price, quantity, date])
         populate(inv_list)
-        again = input("\n--- Inventory Updated ---\n\nAdd another item? (y/n)  ")
+        again = input("\n--- Inventory Updated ---\n\nAdd another item? (y/n)  ").lower().strip()
         print()
     main_menu()
 
@@ -193,11 +191,14 @@ Enter the Product ID of the item you'd like to delete:  """).lower().strip()
         except:
             print(f"\nSelection out of range.  There are {range} items in inventory.\nPlease enter only numeral values.\n")
             choice = 0
+            continue
+        confirm = input(f"\nAre you sure you want to delete '{id.product_name}'? (y/n)  ").lower().strip()
+        if confirm == "y":
+            id.delete_instance()
+            print("\n--- Entry deleted. ---\n")
         else:
-            confirm = input(f"\nAre you sure you want to delete '{id.product_name}'? (y/n)  ")
-            if confirm == "y":
-                id.delete_instance()
-            again = input("\n--- Entry deleted. ---\n\nDelete another Product? (y/n)  ").lower().strip()
+            print("\n--- Delete operation cancelled. ---\n")
+        again = input("Delete another Product? (y/n)  ").lower().strip()
     main_menu()
 
 
@@ -205,21 +206,25 @@ def make_backup():
     """Make a backup of the inventory database"""
     clear()
     back = None
+    overwrite = None
+    print(f"""
+    {stars1}
+                  Create backup
+    {stars1}
+    """)
+    if path.exists("backup.csv"):
+        overwrite = input("A backup exists in this directory.  Overwrite? (y/n)  ").lower().strip()
+    if overwrite != "y":
+        print("\n--- Backup operation cancelled. ---\n")
+        go_back()
     with open('backup.csv', 'w', newline='\n') as backup:
         wr = csv.writer(backup)
         wr.writerow(["product_name","product_price","product_quantity","date_updated"])
-        for row in inv_list:
-            wr.writerow(row)
-    print(f"""
-    {stars1}
-                Backup Successful!
-    {stars1}
-    """)
-    back = input("Would you like to return to the main menu? (y/n)  ")
-    if back != "n":
-        main_menu()
-    else:
-        quit()
+        for row in Product.select():
+            data = [row.product_name, row.product_price, row.product_quantity, row.date_updated]
+            wr.writerow(data)
+    print("\n--- Backup Successful! ---\n")
+    go_back()
 
 
 def quit():
@@ -231,6 +236,14 @@ def quit():
     {stars1}
     """)
     exit()
+
+
+def go_back():
+    back = input("Would you like to return to the main menu? (y/n)  ").lower().strip()
+    if back != "n":
+        main_menu()
+    else:
+        quit()
 
 
 menu = OrderedDict([
