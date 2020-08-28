@@ -8,7 +8,6 @@ from peewee import *
 
 inventory = SqliteDatabase('inventory.db')
 stars1 = "*" * 40
-trim = re.compile(r'[^\d]+')
 
 
 def clear():
@@ -68,31 +67,31 @@ def populate(table):
 def main_menu():
     """Show the menu"""
     choice = None
-    # clear()
-
     clear()
     print(f"""
     {stars1}
       Inventory for The Storensons' Store!
     {stars1}
-    """)        
-    print("""
-Please make a selection from the menu below:""")
-    
-    for key, value in menu.items():
+        """)   
+    while True:
+        # clear()
+     
         print("""
-{}) {}""".format(key, value.__doc__))
-    print()
-    choice = input("Your Selection:  ").lower().strip()
-    try:
-        if choice not in menu:
-            raise ValueError
-    except ValueError:
-        print("\nThe only options available are v/b/a/q, please enter one of these.")
-    else:
-        if choice in menu:
-            # clear()
-            menu[choice]()
+Please make a selection from the menu below:""")
+        for key, value in menu.items():
+            print("""
+    {}) {}""".format(key, value.__doc__))
+        print()
+        choice = input("Your Selection:  ").lower().strip()
+        try:
+            if choice not in menu:
+                raise ValueError
+        except ValueError:
+            print("\n -- ERROR: The only options available are v/e/b/a/d/q, please enter one of these. --")
+        else:
+            if choice in menu:
+                # clear()
+                menu[choice]()
 
 
 def view_product():
@@ -125,6 +124,25 @@ Please enter the Product ID:  """).lower().strip()
     main_menu()
 
 
+def full_view():
+    """View the entire store inventory"""
+    clear()
+    print(f"""
+
+    {stars1}
+                Current Inventory
+    {stars1}
+    """)
+    print("Product ID:  Name,  Quantity in Stock,  Price (in cents),  Date Updated\n",("-" * 56))
+    for item in Product.select():
+        print(f"- {item.product_id}: {item.product_name}, {item.product_quantity}, {item.product_price}, {item.date_updated}")
+    back = input("\nWould you like to return to the main menu? (y/n)  ")
+    if back != "n":
+        main_menu()
+    else:
+        quit()
+
+
 def add_product():
     """Add a product to the inventory"""
     clear()
@@ -149,7 +167,6 @@ def add_product():
             print("\nPlease enter only numeral values for price.\n")
             continue
         date = datetime.datetime.now().date().strftime('%m/%d/%Y')
-        print("...")
         inv_list.append([name, price, quantity, date])
         populate(inv_list)
         again = input("\n--- Inventory Updated ---\n\nAdd another item? (y/n)  ")
@@ -157,23 +174,31 @@ def add_product():
     main_menu()
 
 
-def full_view():
-    """View the full store inventory"""
+def delete_product():
+    """Delete a product from the inventory"""
     clear()
+    choice = 0
+    again = None
+    range = Product.select().order_by(Product.product_id.desc()).get()
     print(f"""
-
     {stars1}
-                Current Inventory
-    {stars1}
-    """)
-    print("Name,  Quantity in Stock,  Price (in cents),  Date Updated\n",("-" * 56))
-    for item in Product.select():
-        print(f"- {item.product_name}, {item.product_quantity}, {item.product_price}, {item.date_updated}")
-    back = input("\nWould you like to return to the main menu? (y/n)  ")
-    if back != "n":
-        main_menu()
-    else:
-        quit()
+                Delete a Product
+    {stars1}""")
+    while again != "n":
+        
+        choice = input("""
+Enter the Product ID of the item you'd like to delete:  """).lower().strip()
+        try:
+            id = Product.select().where(Product.product_id == choice).get()
+        except:
+            print(f"\nSelection out of range.  There are {range} items in inventory.\nPlease enter only numeral values.\n")
+            choice = 0
+        else:
+            confirm = input(f"\nAre you sure you want to delete '{id.product_name}'? (y/n)  ")
+            if confirm == "y":
+                id.delete_instance()
+            again = input("\n--- Entry deleted. ---\n\nDelete another Product? (y/n)  ").lower().strip()
+    main_menu()
 
 
 def make_backup():
@@ -212,6 +237,7 @@ menu = OrderedDict([
         ('v', view_product),
         ("e", full_view),
         ('a', add_product),
+        ('d', delete_product),
         ('b', make_backup),
         ('q', quit)
     ])
