@@ -87,7 +87,7 @@ Please make a selection from the menu below:""")
             if choice not in menu:
                 raise ValueError
         except ValueError:
-            print("\n -- ERROR: The only options available are v/e/b/a/d/q, please enter one of these. --")
+            print("\n--- ERROR: The only options available are v/e/b/a/d/q,\nplease enter one of these. ---")
         else:
             if choice in menu:
                 # clear()
